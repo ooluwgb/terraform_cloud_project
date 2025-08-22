@@ -1,0 +1,31 @@
+name: code-quality
+on:
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      # 0) Checkout
+      - uses: actions/checkout@v4
+
+      # 1) Secret scan (Gitleaks)
+      - name: Install gitleaks
+        run: |
+          GL_VERSION=8.18.4
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VERSION}/gitleaks_${GL_VERSION}_linux_x64.tar.gz" \
+          | tar -xz
+      - name: Run gitleaks (fail on findings)
+        run: ./gitleaks detect --source . --no-banner --redact --exit-code 1
+
+      # 2) Terraform formatting check only
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+      - name: Terraform fmt (check only)
+        run: terraform fmt -check -recursive
