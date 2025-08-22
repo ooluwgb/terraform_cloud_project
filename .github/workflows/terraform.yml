@@ -1,0 +1,47 @@
+name: tf-pr-guards
+on:
+  pull_request:
+    branches: ["main"]   # adjust if needed
+
+permissions:
+  contents: read
+
+jobs:
+  pr-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- 1) Secret scan (Gitleaks) ---
+      - name: Install gitleaks
+        run: |
+          GL_VERSION=8.18.4
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GL_VERSION}/gitleaks_${GL_VERSION}_linux_x64.tar.gz" \
+          | tar -xz
+      - name: Run gitleaks (fail on findings)
+        run: ./gitleaks detect --source . --no-banner --redact --exit-code 1
+
+      # --- 2) Terraform fmt check ---
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5  # pin CLI version for consistency
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+
+      # --- 3) Terraform plan ---
+      # First, configure AWS creds for remote backend (OIDC)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::940659974358:role/GitHubActionsrole
+          aws-region: us-east-1
+
+      # Initialize Terraform (backend)
+      - name: Terraform Init
+        working-directory: infra/env/aws   # 👈 change this per env
+        run: terraform init -input=false
+
+      - name: Terraform Plan
+        working-directory: infra/env/aws   # 👈 change this per env
+        run: terraform plan -input=false -var-file=aws.tfvars
