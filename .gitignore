@@ -22,3 +22,10 @@ crash.*.log
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# All text files
+*.txt
+
+# All note directories
+notes/
+/notes/
