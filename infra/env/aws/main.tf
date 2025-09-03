@@ -70,7 +70,7 @@ module "iam" {
 
 module "eks_cluster" {
   source                  = "../../modules/aws/eks/cluster"
-  name                    = "my-prod-eks"
+  name                    = "my-development-eks"
   cluster_version         = "1.31"
   cluster_role_arn        = module.iam.cluster_role_arn
   private_subnets         = module.vpc.private_subnets
