@@ -65,7 +65,7 @@ resource "aws_route_table_association" "public" {
 
 # Elastic IP for NAT
 resource "aws_eip" "nat" {
-
+  domain = "vpc"
 
   tags = {
     Name = "${var.name}-nat-eip"
