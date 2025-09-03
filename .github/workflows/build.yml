@@ -10,7 +10,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: terraform_cloud_project/infra/env/aws
+    working-directory: infra/env/aws
 
 jobs:
   terraform:
