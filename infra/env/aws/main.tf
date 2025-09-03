@@ -76,7 +76,7 @@ module "eks_cluster" {
   private_subnets         = module.vpc.private_subnets
   public_subnets          = module.vpc.public_subnets
   cluster_security_groups = [module.sg_eks.security_group_id]
-  public_access_cidrs     = ["0.0.0.0/32"]
+  public_access_cidrs     = ["0.0.0.0/0"]
   environment             = "development"
 }
 
