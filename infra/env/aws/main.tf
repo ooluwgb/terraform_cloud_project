@@ -31,3 +31,25 @@ module "sg_web" {
     }
   ]
 }
+
+
+module "iam" {
+  source = "./modules/iam"
+
+  name              = "myeks"
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+
+  irsa_configs = {
+    ebs-csi = {
+      namespace      = "kube-system"
+      serviceaccount = "ebs-csi-controller-sa"
+      policy_arn     = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+    }
+    alb-controller = {
+      namespace      = "kube-system"
+      serviceaccount = "aws-load-balancer-controller"
+      policy_arn     = "arn:aws:iam::123456789012:policy/AWSLoadBalancerControllerPolicy"
+    }
+  }
+}
