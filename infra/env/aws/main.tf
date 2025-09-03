@@ -33,7 +33,7 @@ module "sg_web" {
 
 module "sg_eks" {
   source      = "../../modules/aws/sg"
-  name        = "my-prod-eks-sg"
+  name        = "Development-eks-sg"
   description = "Security group for EKS cluster"
   vpc_id      = module.vpc.vpc_id
 
@@ -70,13 +70,13 @@ module "iam" {
 
 module "eks_cluster" {
   source                  = "../../modules/aws/eks/cluster"
-  name                    = "my-prod-eks"
+  name                    = "my-development-eks"
   cluster_version         = "1.31"
   cluster_role_arn        = module.iam.cluster_role_arn
   private_subnets         = module.vpc.private_subnets
   public_subnets          = module.vpc.public_subnets
   cluster_security_groups = [module.sg_eks.security_group_id]
-  public_access_cidrs     = ["0.0.0.0/32"]
+  public_access_cidrs     = ["0.0.0.0/0"]
   environment             = "development"
 }
 
