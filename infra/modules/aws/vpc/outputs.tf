@@ -17,3 +17,7 @@ output "nat_gateway_id" {
 output "igw_id" {
   value = aws_internet_gateway.this.id
 }
+
+output "private_subnets_cidrs" {
+  value = aws_subnet.private[*].cidr_block
+}

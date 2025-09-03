@@ -9,7 +9,9 @@ output "node_role_arn" {
 output "irsa_role_arns" {
   value = { for k, v in aws_iam_role.irsa : k => v.arn }
 }
-
+output "alb_controller_policy_arn" {
+  value = aws_iam_policy.alb_controller.arn
+}
 
 
 
