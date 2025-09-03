@@ -1,4 +1,4 @@
-name: Plan and Apply on Merge
+name: Plan and Apply on Push to Main
 
 on:
   push:
