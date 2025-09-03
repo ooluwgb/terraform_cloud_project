@@ -33,7 +33,7 @@ module "sg_web" {
 
 module "sg_eks" {
   source      = "../../modules/aws/sg"
-  name        = "my-prod-eks-sg"
+  name        = "Development-eks-sg"
   description = "Security group for EKS cluster"
   vpc_id      = module.vpc.vpc_id
 
