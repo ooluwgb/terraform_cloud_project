@@ -1,12 +1,14 @@
+# Terraform Workflow - Plan and Apply on Push to Main
+# This workflow runs terraform plan and apply automatically when changes are pushed to main branch
 name: Plan and Apply on Push to Main
 
 on:
   push:
-    branches: [ main ]   
+    branches: [ main ]
 
 permissions:
-  id-token: write        
-  contents: read
+  id-token: write        # Required for OIDC authentication
+  contents: read         # Required to checkout repository
 
 defaults:
   run:
@@ -17,27 +19,65 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_IN_AUTOMATION: true
-
+    
     steps:
+      # Checkout the repository code
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      
+      # Setup Terraform CLI
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.13.1
-
+      
+      # Output Terraform version for debugging
+      - name: Output Terraform Version
+        run: terraform version
+      
+      # Cache Terraform providers and modules to speed up workflow
+      - name: Cache Terraform providers and modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            infra/env/aws/.terraform
+            infra/env/aws/.terraform.lock.hcl
+          key: ${{ runner.os }}-terraform-${{ hashFiles('infra/env/aws/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+      
+      # Configure AWS credentials using OIDC
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
-
+      
+      # Initialize Terraform working directory
       - name: Terraform Init
         run: terraform init -input=false
-
+      
+      # Validate Terraform configuration files
+      - name: Terraform Validate
+        run: terraform validate
+      
+      # Generate and output an execution plan
       - name: Terraform Plan
         run: terraform plan -input=false -no-color -out=tfplan
-
+      
+      # Upload the plan file as an artifact for review
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-plan
+          path: infra/env/aws/tfplan
+          retention-days: 7
+      
+      # Apply the Terraform plan with error handling
       - name: Terraform Apply
-        run: terraform apply -input=false -auto-approve tfplan
+        run: |
+          set -e  # Exit immediately if a command exits with a non-zero status
+          terraform apply -input=false -auto-approve tfplan || {
+            echo "Terraform apply failed with exit code $?";
+            exit 1;
+          }
